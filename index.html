@@ -3,28 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proteger PDFs con DNI - Lectura Inteligente</title>
+<title>Proteger PDFs con DNI</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0c10;
-    --surface: #12151c;
-    --surface2: #1a1f2a;
-    --border: #252d3d;
-    --text: #e8eaef;
-    --text2: #8892a8;
-    --accent: #10b981;
-    --accent-glow: rgba(16, 185, 129, 0.2);
-    --purple: #8b5cf6;
-    --purple-glow: rgba(139, 92, 246, 0.2);
-    --error: #ef4444;
-    --warning: #f59e0b;
-    --radius: 14px;
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232736;
+    --border: #2e3348;
+    --text: #e8e9ed;
+    --text2: #9096a8;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108, 92, 231, 0.25);
+    --success: #00b894;
+    --error: #e17055;
+    --warning: #fdcb6e;
+    --radius: 12px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,58 +34,55 @@
     min-height: 100vh;
     padding: 2rem;
     background-image: 
-      radial-gradient(ellipse at 10% 10%, rgba(16, 185, 129, 0.06) 0%, transparent 40%),
-      radial-gradient(ellipse at 90% 90%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+      radial-gradient(ellipse at 20% 0%, rgba(108, 92, 231, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(0, 184, 148, 0.06) 0%, transparent 50%);
   }
 
-  .container { max-width: 900px; margin: 0 auto; }
+  .container { max-width: 820px; margin: 0 auto; }
 
   header { text-align: center; margin-bottom: 2.5rem; }
 
   header h1 {
     font-family: 'Space Mono', monospace;
-    font-size: 1.7rem;
+    font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: -0.5px;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #10b981 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #e8e9ed 0%, #6c5ce7 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  header p { color: var(--text2); font-size: 0.92rem; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+  header p { color: var(--text2); font-size: 0.95rem; max-width: 520px; margin: 0 auto; }
 
-  .badge {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.3);
-    padding: 0.35rem 0.8rem; border-radius: 20px;
-    font-size: 0.72rem; color: var(--purple); margin-bottom: 1rem;
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-bottom: 2rem; }
+  .steps { display: flex; gap: 1rem; margin-bottom: 2rem; }
 
   .step-indicator {
-    display: flex; align-items: center; gap: 0.6rem;
-    padding: 0.9rem 1rem; background: var(--surface);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    font-size: 0.82rem; color: var(--text2); transition: all 0.3s;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    color: var(--text2);
+    transition: all 0.3s;
   }
 
-  .step-indicator.active { border-color: var(--accent); color: var(--text); box-shadow: 0 0 25px var(--accent-glow); }
-  .step-indicator.done { border-color: var(--accent); color: var(--accent); }
+  .step-indicator.active { border-color: var(--accent); color: var(--text); box-shadow: 0 0 20px var(--accent-glow); }
+  .step-indicator.done { border-color: var(--success); color: var(--success); }
 
   .step-num {
-    width: 28px; height: 28px; border-radius: 8px;
+    width: 26px; height: 26px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700;
     background: var(--surface2); flex-shrink: 0;
   }
 
-  .step-indicator.active .step-num { background: var(--accent); color: var(--bg); }
-  .step-indicator.done .step-num { background: var(--accent); color: var(--bg); }
-  .step-indicator.done .step-num::after { content: '✓'; }
-  .step-indicator.done .step-num span { display: none; }
+  .step-indicator.active .step-num { background: var(--accent); color: white; }
+  .step-indicator.done .step-num { background: var(--success); color: white; }
 
   .card {
     background: var(--surface);
@@ -98,9 +93,9 @@
     transition: all 0.3s;
   }
 
-  .card:hover { border-color: #3a4560; }
-  .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
-  .card .desc { font-size: 0.85rem; color: var(--text2); margin-bottom: 1rem; line-height: 1.5; }
+  .card:hover { border-color: #3d4260; }
+  .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .card .desc { font-size: 0.85rem; color: var(--text2); margin-bottom: 1rem; }
 
   .upload-zone {
     border: 2px dashed var(--border);
@@ -112,551 +107,666 @@
     position: relative;
   }
 
-  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: rgba(16, 185, 129, 0.04); }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: rgba(108, 92, 231, 0.05); }
   .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-zone .icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+  .upload-zone .icon { font-size: 2rem; margin-bottom: 0.5rem; }
   .upload-zone .label { font-size: 0.9rem; color: var(--text2); }
   .upload-zone .label strong { color: var(--accent); }
 
   .file-info {
     display: flex; align-items: center; gap: 0.5rem;
-    padding: 0.7rem 1rem; background: var(--surface2);
-    border-radius: 10px; font-size: 0.85rem; margin-top: 0.8rem;
-    color: var(--accent); font-family: 'Space Mono', monospace;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 0.6rem 1rem; background: var(--surface2);
+    border-radius: 8px; font-size: 0.85rem; margin-top: 0.8rem;
+    color: var(--success); font-family: 'Space Mono', monospace;
   }
+
+  .file-info.info-err { color: var(--error); }
+  .file-info.info-warn { color: var(--warning); }
 
   .column-select { margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; }
   .column-select label { font-size: 0.85rem; color: var(--text2); display: block; margin-bottom: 0.3rem; }
 
   .column-select select {
     background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); padding: 0.55rem 0.9rem; border-radius: 10px;
+    color: var(--text); padding: 0.5rem 0.8rem; border-radius: 8px;
     font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
-    min-width: 200px; cursor: pointer;
+    min-width: 180px; cursor: pointer;
   }
 
   .column-select select:focus { outline: none; border-color: var(--accent); }
 
-  .feature-box {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: var(--radius); padding: 1.2rem; margin-top: 1rem;
+  .match-mode { margin-top: 1rem; }
+  .match-mode > label { font-size: 0.85rem; color: var(--text2); display: block; margin-bottom: 0.5rem; }
+  .radio-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .radio-option {
+    padding: 0.5rem 1rem; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.82rem; cursor: pointer; transition: all 0.2s; color: var(--text2);
   }
 
-  .feature-box h4 { font-size: 0.9rem; color: var(--purple); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-  .feature-box p { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+  .radio-option:hover { border-color: #4a5070; }
+
+  .radio-option.selected {
+    border-color: var(--accent); background: rgba(108, 92, 231, 0.12); color: var(--text);
+  }
 
   .btn {
     display: inline-flex; align-items: center; gap: 0.5rem;
-    padding: 0.95rem 2rem; border: none; border-radius: var(--radius);
+    padding: 0.9rem 2rem; border: none; border-radius: var(--radius);
     font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
     cursor: pointer; transition: all 0.3s; width: 100%; justify-content: center;
   }
 
-  .btn-primary { 
-    background: linear-gradient(135deg, var(--accent) 0%, #059669 100%); 
-    color: white; 
-    box-shadow: 0 4px 20px var(--accent-glow); 
-  }
-  .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(16, 185, 129, 0.35); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 20px var(--accent-glow); }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 30px rgba(108, 92, 231, 0.4); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .btn-download { 
-    background: linear-gradient(135deg, var(--purple) 0%, #7c3aed 100%); 
-    color: white; 
-    margin-top: 1rem; 
-    box-shadow: 0 4px 20px var(--purple-glow);
+  .btn-secondary {
+    background: transparent; color: var(--text2); border: 1px solid var(--border);
+    padding: 0.6rem 1.2rem; font-size: 0.85rem; width: auto; margin-top: 0.8rem;
   }
-  .btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139, 92, 246, 0.35); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+
+  .btn-download { background: var(--success); color: white; margin-top: 1rem; }
+  .btn-download:hover { transform: translateY(-1px); }
 
   .progress-area { margin-top: 1.2rem; }
-  .progress-bar-bg { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-bottom: 0.8rem; }
+
+  .progress-bar-bg { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-bottom: 0.8rem; }
+
   .progress-bar-fill {
-    height: 100%; 
-    background: linear-gradient(90deg, var(--accent), var(--purple));
-    border-radius: 4px; transition: width 0.3s;
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--success));
+    border-radius: 3px; transition: width 0.3s;
   }
 
   .log {
-    max-height: 320px; overflow-y: auto;
-    font-family: 'Space Mono', monospace; font-size: 0.73rem; line-height: 1.8;
-    padding: 1rem; background: var(--bg); border-radius: 10px; border: 1px solid var(--border);
+    max-height: 280px; overflow-y: auto;
+    font-family: 'Space Mono', monospace; font-size: 0.75rem; line-height: 1.7;
+    padding: 1rem; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);
   }
 
-  .log::-webkit-scrollbar { width: 6px; }
-  .log::-webkit-scrollbar-track { background: var(--surface2); border-radius: 3px; }
-  .log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  .log-ok { color: var(--accent); }
+  .log-ok { color: var(--success); }
   .log-err { color: var(--error); }
   .log-warn { color: var(--warning); }
   .log-info { color: var(--text2); }
-  .log-scan { color: var(--purple); }
 
-  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; margin-bottom: 1rem; }
+  .summary { display: flex; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem; }
 
   .summary-item {
-    text-align: center; padding: 1.2rem;
-    background: var(--surface2); border-radius: 12px;
-    border: 1px solid var(--border);
+    flex: 1; text-align: center; padding: 1rem;
+    background: var(--surface2); border-radius: 8px;
   }
 
-  .summary-item .num { font-family: 'Space Mono', monospace; font-size: 1.8rem; font-weight: 700; }
-  .summary-item.ok .num { color: var(--accent); }
-  .summary-item.err .num { color: var(--error); }
-  .summary-item .lbl { font-size: 0.78rem; color: var(--text2); margin-top: 0.3rem; }
+  .summary-item .num { font-family: 'Space Mono', monospace; font-size: 1.5rem; font-weight: 700; }
+  .summary-item .lbl { font-size: 0.78rem; color: var(--text2); margin-top: 0.2rem; }
 
   .preview-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 0.8rem; }
-  .preview-table th { text-align: left; padding: 0.6rem 0.8rem; color: var(--text2); font-weight: 500; border-bottom: 1px solid var(--border); }
-  .preview-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid rgba(37, 45, 61, 0.5); font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+  .preview-table th { text-align: left; padding: 0.5rem 0.8rem; color: var(--text2); font-weight: 500; border-bottom: 1px solid var(--border); }
+  .preview-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(46, 51, 72, 0.5); font-family: 'Space Mono', monospace; font-size: 0.73rem; }
 
-  .tag { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.72rem; }
-  .tag-ok { background: rgba(16, 185, 129, 0.15); color: var(--accent); }
-  .tag-no { background: rgba(239, 68, 68, 0.15); color: var(--error); }
-  .tag-pending { background: rgba(139, 92, 246, 0.15); color: var(--purple); }
+  .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem; }
+  .tag-ok { background: rgba(0, 184, 148, 0.15); color: var(--success); }
+  .tag-no { background: rgba(225, 112, 85, 0.15); color: var(--error); }
 
   .hidden { display: none; }
 
-  .scan-status {
-    display: flex; align-items: center; gap: 0.6rem;
-    padding: 0.8rem 1rem; background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.25);
-    border-radius: 10px; font-size: 0.85rem; color: var(--purple);
+  .tip {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    padding: 0.8rem 1rem; background: rgba(108, 92, 231, 0.08);
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    border-radius: 8px; font-size: 0.82rem; color: var(--text2);
+    margin-top: 1rem; line-height: 1.5;
+  }
+
+  .tip strong { color: var(--accent); }
+
+  .debug-box {
     margin-top: 0.8rem;
+    padding: 0.8rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text2);
+    max-height: 150px;
+    overflow-y: auto;
+    line-height: 1.6;
   }
 
   .loading-spinner {
     display: inline-block; width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-top-color: currentColor;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .rename-options { margin-top: 1rem; }
-  .rename-options > label { font-size: 0.85rem; color: var(--text2); display: block; margin-bottom: 0.6rem; }
-  
-  .radio-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-
-  .radio-option {
-    padding: 0.55rem 1rem; background: var(--surface2);
-    border: 1px solid var(--border); border-radius: 10px;
-    font-size: 0.82rem; cursor: pointer; transition: all 0.2s; color: var(--text2);
+  .reset-bar {
+    display: flex; justify-content: flex-end; margin-bottom: 0.5rem;
   }
 
-  .radio-option:hover { border-color: #4a5a7a; }
-  .radio-option.selected { border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--text); }
-
-  @media (max-width: 700px) {
-    .steps { grid-template-columns: 1fr; }
-    .summary { grid-template-columns: 1fr; }
+  @media (max-width: 600px) {
+    body { padding: 1rem; }
+    .steps { flex-direction: column; }
+    .summary { flex-direction: column; }
     .column-select { flex-direction: column; }
-    .column-select select { width: 100%; }
+    header h1 { font-size: 1.4rem; }
+    .radio-group { flex-direction: column; }
   }
+
+  .log::-webkit-scrollbar, .debug-box::-webkit-scrollbar { width: 4px; }
+  .log::-webkit-scrollbar-track, .debug-box::-webkit-scrollbar-track { background: transparent; }
+  .log::-webkit-scrollbar-thumb, .debug-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <div class="badge">🧠 Lectura inteligente de PDFs</div>
-    <h1>Proteger PDFs con DNI</h1>
-    <p>Sube tu Excel y los PDFs (aunque tengan nombres genéricos). El sistema <strong>leerá el contenido</strong> de cada PDF para encontrar el DNI y asociarlo automáticamente con el alumno correcto.</p>
+    <h1>🔐 Proteger PDFs con DNI</h1>
+    <p>Sube tu Excel con los alumnos y un ZIP con los PDFs. La app asigna automáticamente el DNI como contraseña a cada PDF.</p>
   </header>
+
+  <div class="reset-bar">
+    <button class="btn btn-secondary" onclick="fullReset()" title="Borrar todo y empezar de nuevo">
+      🗑️ Limpiar todo
+    </button>
+  </div>
 
   <div class="steps">
     <div class="step-indicator active" id="step1-ind">
-      <div class="step-num"><span>1</span></div>
-      <span>Subir Excel</span>
+      <span class="step-num">1</span> Subir Excel
     </div>
     <div class="step-indicator" id="step2-ind">
-      <div class="step-num"><span>2</span></div>
-      <span>Subir PDFs</span>
+      <span class="step-num">2</span> Subir PDFs
     </div>
     <div class="step-indicator" id="step3-ind">
-      <div class="step-num"><span>3</span></div>
-      <span>Procesar</span>
+      <span class="step-num">3</span> Procesar
     </div>
   </div>
 
-  <!-- EXCEL -->
-  <div class="card">
-    <h3>📊 Lista de alumnos (Excel)</h3>
-    <p class="desc">Archivo con columnas de nombre completo y DNI de cada alumno.</p>
-    <div class="upload-zone" id="excel-zone">
-      <div class="icon">📁</div>
-      <div class="label">Arrastra tu archivo Excel aquí o <strong>haz clic para seleccionar</strong></div>
-      <input type="file" accept=".xlsx,.xls,.csv" id="excel-input">
+  <!-- STEP 1: Excel -->
+  <div class="card" id="card-excel">
+    <h3>📊 Archivo Excel con alumnos</h3>
+    <p class="desc">Debe tener al menos una columna con los nombres y otra con los DNI.</p>
+    <div class="upload-zone" id="zone-excel">
+      <input type="file" accept=".xlsx,.xls,.csv" id="input-excel" autocomplete="off">
+      <div class="icon">📄</div>
+      <div class="label">Arrastra tu archivo o <strong>haz clic aquí</strong><br>.xlsx, .xls, .csv</div>
     </div>
     <div id="excel-info" class="hidden"></div>
-    <div class="column-select hidden" id="column-select">
-      <div>
-        <label>Columna de Nombre</label>
-        <select id="col-name"></select>
+    <div id="excel-columns" class="hidden">
+      <div class="column-select">
+        <div>
+          <label>Columna con nombre del alumno:</label>
+          <select id="col-name"></select>
+        </div>
+        <div>
+          <label>Columna con DNI:</label>
+          <select id="col-dni"></select>
+        </div>
       </div>
-      <div>
-        <label>Columna de DNI</label>
-        <select id="col-dni"></select>
-      </div>
-    </div>
-  </div>
-
-  <!-- PDFs -->
-  <div class="card">
-    <h3>📄 Archivos PDF</h3>
-    <p class="desc">Sube los PDFs aunque tengan nombres genéricos como "documento(1).pdf". El sistema leerá su contenido para identificar a quién pertenece cada uno.</p>
-    <div class="upload-zone" id="pdf-zone">
-      <div class="icon">📑</div>
-      <div class="label">Arrastra tus PDFs o un ZIP aquí o <strong>haz clic para seleccionar</strong></div>
-      <input type="file" accept=".pdf,.zip" multiple id="pdf-input">
-    </div>
-    <div id="pdf-loading" class="hidden scan-status">
-      <span class="loading-spinner"></span>
-      <span>Cargando archivos...</span>
-    </div>
-    <div id="pdf-scanning" class="hidden scan-status">
-      <span class="loading-spinner"></span>
-      <span id="scan-text">Escaneando contenido de PDFs...</span>
-    </div>
-    <div id="pdf-info" class="hidden"></div>
-    
-    <div class="feature-box">
-      <h4>🔍 ¿Cómo funciona?</h4>
-      <p>El sistema extrae el texto de cada PDF y busca el DNI de los alumnos del Excel. Así puede asociar correctamente cada documento aunque el nombre del archivo sea genérico.</p>
-    </div>
-  </div>
-
-  <!-- PREVIEW -->
-  <div class="card hidden" id="preview-container">
-    <h3>👁️ Vista previa del emparejamiento</h3>
-    <p class="desc">Verificación de qué PDF corresponde a cada alumno (basado en DNI encontrado dentro del PDF).</p>
-    <table class="preview-table" id="preview-table"></table>
-  </div>
-
-  <!-- OPCIONES -->
-  <div class="card hidden" id="options-card">
-    <h3>⚙️ Opciones de exportación</h3>
-    <div class="rename-options">
-      <label>¿Cómo nombrar los PDFs protegidos?</label>
-      <div class="radio-group" id="rename-options">
-        <div class="radio-option selected" data-value="nombre_dni">Nombre_DNI.pdf</div>
-        <div class="radio-option" data-value="dni_nombre">DNI_Nombre.pdf</div>
-        <div class="radio-option" data-value="solo_nombre">Nombre.pdf</div>
-        <div class="radio-option" data-value="original">Mantener original</div>
+      <div id="preview-container" class="hidden" style="margin-top: 1rem; overflow-x: auto;">
+        <table class="preview-table" id="preview-table"></table>
       </div>
     </div>
   </div>
 
-  <!-- PROCESS -->
-  <div class="card">
-    <button class="btn btn-primary" id="btn-process" disabled>
-      🔐 Escanear PDFs y Proteger con Contraseña
-    </button>
+  <!-- STEP 2: PDFs -->
+  <div class="card" id="card-pdfs">
+    <h3>📁 Archivos PDF de alumnos</h3>
+    <p class="desc">Sube un archivo <strong>.zip</strong> con todos los PDFs adentro, o selecciona los PDFs sueltos.</p>
+
+    <div class="upload-zone" id="zone-pdfs">
+      <input type="file" accept=".pdf,.zip" multiple id="input-pdfs" autocomplete="off">
+      <div class="icon">📦</div>
+      <div class="label">Arrastra tu <strong>.zip</strong> con PDFs o <strong>selecciona PDFs sueltos</strong><br>Se acepta .zip o múltiples .pdf</div>
+    </div>
+    <div id="pdfs-loading" class="hidden" style="margin-top: 0.8rem;">
+      <div class="file-info" style="color: var(--accent);">
+        <span class="loading-spinner"></span> Extrayendo PDFs del ZIP...
+      </div>
+    </div>
+    <div id="pdfs-info" class="hidden"></div>
+    <div id="pdfs-debug" class="hidden"></div>
+
+    <div class="match-mode" id="match-section">
+      <label>¿Cómo coinciden los nombres de los PDFs con el Excel?</label>
+      <div class="radio-group">
+        <div class="radio-option selected" data-value="smart" onclick="setMatchMode(this)">
+          🧠 Inteligente (recomendado)
+        </div>
+        <div class="radio-option" data-value="contains" onclick="setMatchMode(this)">
+          Contiene el nombre
+        </div>
+        <div class="radio-option" data-value="exact" onclick="setMatchMode(this)">
+          Nombre exacto
+        </div>
+        <div class="radio-option" data-value="dni" onclick="setMatchMode(this)">
+          PDF nombrado con DNI
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      💡 <span>El modo <strong>Inteligente</strong> ignora acentos, mayúsculas, guiones, orden de palabras y textos extra. Ej: <em>"GARCIA LOPEZ, JUAN CARLOS - Nota final.pdf"</em> matchea con <em>"Juan Carlos García López"</em> del Excel.</span>
+    </div>
   </div>
 
-  <!-- RESULTS -->
-  <div class="card hidden" id="results">
-    <h3>📋 Resultado del proceso</h3>
-    <div class="progress-area">
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+  <!-- Process -->
+  <button class="btn btn-primary" id="btn-process" disabled onclick="processAll()">
+    🔐 Proteger PDFs con contraseña
+  </button>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+    <div class="card" style="margin-top: 1.2rem;">
+      <h3>📋 Resultado</h3>
+      <div class="progress-area">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <div id="progress-text" style="font-size:0.8rem; color:var(--text2); text-align:center;"></div>
       </div>
-      <div id="progress-text" style="font-size: 0.82rem; color: var(--text2);"></div>
+      <div class="summary hidden" id="summary">
+        <div class="summary-item">
+          <div class="num log-ok" id="count-ok">0</div>
+          <div class="lbl">Protegidos</div>
+        </div>
+        <div class="summary-item">
+          <div class="num log-err" id="count-err">0</div>
+          <div class="lbl">Sin coincidencia</div>
+        </div>
+        <div class="summary-item">
+          <div class="num" style="color: var(--text)" id="count-total">0</div>
+          <div class="lbl">Total alumnos</div>
+        </div>
+      </div>
+      <div class="log" id="log"></div>
+      <button class="btn btn-download hidden" id="btn-download" onclick="downloadZip()">
+        ⬇️ Descargar todos los PDFs protegidos (.zip)
+      </button>
     </div>
-    <div class="log" id="log"></div>
-    <div class="summary hidden" id="summary">
-      <div class="summary-item ok">
-        <div class="num" id="count-ok">0</div>
-        <div class="lbl">Protegidos</div>
-      </div>
-      <div class="summary-item err">
-        <div class="num" id="count-err">0</div>
-        <div class="lbl">Sin emparejar</div>
-      </div>
-      <div class="summary-item">
-        <div class="num" id="count-total">0</div>
-        <div class="lbl">Total alumnos</div>
-      </div>
-    </div>
-    <button class="btn btn-download hidden" id="btn-download" onclick="downloadZip()">
-      ⬇️ Descargar PDFs protegidos (.zip)
-    </button>
   </div>
 </div>
 
 <script>
-  // Configurar PDF.js
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
   let excelData = [];
-  let pdfFiles = []; // { name, data, textContent, foundDni }
+  let pdfFiles = [];
+  let matchMode = 'smart';
   let resultZip = null;
-  let renameMode = 'nombre_dni';
 
-  const btnProcess = document.getElementById('btn-process');
+  // ============================================
+  // FULL RESET — runs on every page load + button
+  // ============================================
+  function fullReset() {
+    // Clear JS state
+    excelData = [];
+    pdfFiles = [];
+    matchMode = 'smart';
+    resultZip = null;
 
-  // Rename options
-  document.querySelectorAll('#rename-options .radio-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      document.querySelectorAll('#rename-options .radio-option').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      renameMode = opt.dataset.value;
+    // Clear file inputs completely (replace them to kill cached values)
+    const excelInput = document.getElementById('input-excel');
+    const pdfsInput = document.getElementById('input-pdfs');
+    excelInput.value = '';
+    pdfsInput.value = '';
+    // Some browsers ignore .value='', so clone and replace
+    const newExcel = excelInput.cloneNode(true);
+    const newPdfs = pdfsInput.cloneNode(true);
+    excelInput.parentNode.replaceChild(newExcel, excelInput);
+    pdfsInput.parentNode.replaceChild(newPdfs, pdfsInput);
+    // Re-attach listeners
+    newExcel.addEventListener('change', handleExcelUpload);
+    newPdfs.addEventListener('change', handlePdfsUpload);
+
+    // Reset UI
+    document.getElementById('excel-info').classList.add('hidden');
+    document.getElementById('excel-info').innerHTML = '';
+    document.getElementById('excel-columns').classList.add('hidden');
+    document.getElementById('col-name').innerHTML = '';
+    document.getElementById('col-dni').innerHTML = '';
+    document.getElementById('preview-container').classList.add('hidden');
+    document.getElementById('preview-table').innerHTML = '';
+
+    document.getElementById('pdfs-info').classList.add('hidden');
+    document.getElementById('pdfs-info').innerHTML = '';
+    document.getElementById('pdfs-loading').classList.add('hidden');
+    document.getElementById('pdfs-debug').classList.add('hidden');
+    document.getElementById('pdfs-debug').innerHTML = '';
+
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('summary').classList.add('hidden');
+    document.getElementById('log').innerHTML = '';
+    document.getElementById('btn-download').classList.add('hidden');
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = '';
+
+    document.getElementById('btn-process').disabled = true;
+    document.getElementById('btn-process').innerHTML = '🔐 Proteger PDFs con contraseña';
+
+    // Reset steps
+    ['step1-ind', 'step2-ind', 'step3-ind'].forEach(id => {
+      document.getElementById(id).classList.remove('active', 'done');
     });
+    document.getElementById('step1-ind').classList.add('active');
+
+    // Reset match mode radio
+    document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+    document.querySelector('[data-value="smart"]').classList.add('selected');
+
+    console.log('🗑️ Estado limpiado completamente');
+  }
+
+  // Run reset on EVERY page load
+  window.addEventListener('DOMContentLoaded', fullReset);
+  window.addEventListener('pageshow', function(e) {
+    // Also handles back/forward cache (bfcache)
+    if (e.persisted) fullReset();
   });
 
-  // Drag & drop
-  ['excel-zone', 'pdf-zone'].forEach(id => {
+  // ============================================
+  // DRAG AND DROP
+  // ============================================
+  ['zone-excel', 'zone-pdfs'].forEach(id => {
     const zone = document.getElementById(id);
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
     zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); });
+    zone.addEventListener('drop', () => zone.classList.remove('dragover'));
   });
 
-  // === EXCEL ===
-  document.getElementById('excel-input').addEventListener('change', async function(e) {
+  function setMatchMode(el) {
+    document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    matchMode = el.dataset.value;
+    updatePreview();
+  }
+
+  // ============================================
+  // TEXT NORMALIZATION
+  // ============================================
+  function normalize(str) {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[_\-.,;:()[\]{}'"/\\]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function getWords(str) {
+    return normalize(str).split(' ').filter(w => w.length > 1);
+  }
+
+  function getWordsSet(str) {
+    return new Set(getWords(str));
+  }
+
+  function smartMatch(excelName, pdfBaseName) {
+    const nameWords = getWords(excelName);
+    const pdfWordsSet = getWordsSet(pdfBaseName);
+    if (nameWords.length === 0) return 0;
+    let matchCount = 0;
+    for (const w of nameWords) {
+      if (pdfWordsSet.has(w)) {
+        matchCount++;
+      } else {
+        for (const pw of pdfWordsSet) {
+          if (pw.includes(w) || w.includes(pw)) { matchCount += 0.6; break; }
+        }
+      }
+    }
+    return matchCount / nameWords.length;
+  }
+
+  function findPdfMatch(name, dni) {
+    const normName = normalize(name);
+    const normDni = normalize(String(dni));
+
+    if (matchMode === 'dni') {
+      return pdfFiles.find(pdf => normalize(pdf.name.replace(/\.pdf$/i, '')).includes(normDni)) || null;
+    }
+    if (matchMode === 'exact') {
+      return pdfFiles.find(pdf => normalize(pdf.name.replace(/\.pdf$/i, '')) === normName) || null;
+    }
+    if (matchMode === 'contains') {
+      return pdfFiles.find(pdf => {
+        const b = normalize(pdf.name.replace(/\.pdf$/i, ''));
+        return b.includes(normName) || normName.includes(b);
+      }) || null;
+    }
+
+    // Smart
+    let bestMatch = null, bestScore = 0;
+    for (const pdf of pdfFiles) {
+      const pdfBase = pdf.name.replace(/\.pdf$/i, '');
+      const normPdfBase = normalize(pdfBase);
+      if (normDni && normDni.length >= 6 && normPdfBase.includes(normDni)) return pdf;
+      const score = smartMatch(name, pdfBase);
+      if (score > bestScore) { bestScore = score; bestMatch = pdf; }
+    }
+    if (bestScore >= 0.7) return bestMatch;
+    return pdfFiles.find(pdf => {
+      const b = normalize(pdf.name.replace(/\.pdf$/i, ''));
+      return b.includes(normName) || normName.includes(b);
+    }) || null;
+  }
+
+  // ============================================
+  // EXCEL UPLOAD
+  // ============================================
+  async function handleExcelUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const infoEl = document.getElementById('excel-info');
-    const colSelect = document.getElementById('column-select');
+    // Clear previous excel state
+    excelData = [];
 
-    try {
-      const data = await file.arrayBuffer();
-      const wb = XLSX.read(data, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data);
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    excelData = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
-      if (json.length === 0) {
-        alert('El archivo Excel está vacío');
-        return;
-      }
-
-      excelData = json;
-      const cols = Object.keys(json[0]);
-
-      // Populate selects
-      const nameSelect = document.getElementById('col-name');
-      const dniSelect = document.getElementById('col-dni');
-      nameSelect.innerHTML = '';
-      dniSelect.innerHTML = '';
-
-      cols.forEach(col => {
-        nameSelect.innerHTML += `<option value="${col}">${col}</option>`;
-        dniSelect.innerHTML += `<option value="${col}">${col}</option>`;
-      });
-
-      // Auto-detect columns
-      const lowerCols = cols.map(c => c.toLowerCase());
-      const nameIdx = lowerCols.findIndex(c => c.includes('nombre') || c.includes('alumno') || c.includes('name'));
-      const dniIdx = lowerCols.findIndex(c => c.includes('dni') || c.includes('documento') || c.includes('id'));
-      
-      if (nameIdx >= 0) nameSelect.selectedIndex = nameIdx;
-      if (dniIdx >= 0) dniSelect.selectedIndex = dniIdx;
-
-      infoEl.innerHTML = `<div class="file-info">✅ ${file.name} — ${json.length} alumnos encontrados</div>`;
-      infoEl.classList.remove('hidden');
-      colSelect.classList.remove('hidden');
-
-      document.getElementById('step1-ind').classList.remove('active');
-      document.getElementById('step1-ind').classList.add('done');
-      document.getElementById('step2-ind').classList.add('active');
-
-      updatePreview();
-      checkReady();
-    } catch (err) {
-      alert('Error al leer el Excel: ' + err.message);
-    }
-  });
-
-  document.getElementById('col-name').addEventListener('change', updatePreview);
-  document.getElementById('col-dni').addEventListener('change', updatePreview);
-
-  // === PDFs ===
-  document.getElementById('pdf-input').addEventListener('change', async function(e) {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    const loadingEl = document.getElementById('pdf-loading');
-    const scanningEl = document.getElementById('pdf-scanning');
-    const scanText = document.getElementById('scan-text');
-    const infoEl = document.getElementById('pdf-info');
-
-    pdfFiles = [];
-    loadingEl.classList.remove('hidden');
-    scanningEl.classList.add('hidden');
-    infoEl.classList.add('hidden');
-
-    // Check if ZIP
-    if (files.length === 1 && files[0].name.toLowerCase().endsWith('.zip')) {
-      try {
-        const zipData = await files[0].arrayBuffer();
-        const zip = await JSZip.loadAsync(zipData);
-        const pdfEntries = Object.entries(zip.files).filter(
-          ([name, entry]) => !entry.dir && name.toLowerCase().endsWith('.pdf')
-        );
-
-        for (const [name, entry] of pdfEntries) {
-          const data = await entry.async('arraybuffer');
-          const fileName = name.split('/').pop();
-          pdfFiles.push({ name: fileName, data, textContent: '', foundDni: null });
-        }
-      } catch (err) {
-        loadingEl.classList.add('hidden');
-        alert('Error al leer el ZIP: ' + err.message);
-        return;
-      }
-    } else {
-      for (const file of files.filter(f => f.name.toLowerCase().endsWith('.pdf'))) {
-        const data = await file.arrayBuffer();
-        pdfFiles.push({ name: file.name, data, textContent: '', foundDni: null });
-      }
-    }
-
-    loadingEl.classList.add('hidden');
-    
-    if (pdfFiles.length === 0) {
-      alert('No se encontraron archivos PDF');
+    if (excelData.length === 0) {
+      alert('El archivo Excel está vacío.');
       return;
     }
 
-    // Now scan PDF contents
-    scanningEl.classList.remove('hidden');
-    
-    for (let i = 0; i < pdfFiles.length; i++) {
-      scanText.textContent = `Escaneando PDF ${i + 1} de ${pdfFiles.length}...`;
-      try {
-        const text = await extractTextFromPDF(pdfFiles[i].data);
-        pdfFiles[i].textContent = text;
-        
-        // Try to find a DNI in the text
-        if (excelData.length > 0) {
-          const dniCol = document.getElementById('col-dni').value;
-          for (const row of excelData) {
-            const dni = String(row[dniCol] || '').trim();
-            if (dni && text.includes(dni)) {
-              pdfFiles[i].foundDni = dni;
-              break;
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('Error scanning PDF:', pdfFiles[i].name, err);
-      }
-      
-      // Small delay to keep UI responsive
-      if (i % 5 === 0) await new Promise(r => setTimeout(r, 10));
-    }
+    document.getElementById('excel-info').innerHTML = `<div class="file-info">✅ ${file.name} — ${excelData.length} alumnos</div>`;
+    document.getElementById('excel-info').classList.remove('hidden');
 
-    scanningEl.classList.add('hidden');
-    
-    const matchedCount = pdfFiles.filter(p => p.foundDni).length;
-    infoEl.innerHTML = `<div class="file-info">✅ ${pdfFiles.length} PDFs cargados — ${matchedCount} con DNI identificado</div>`;
-    infoEl.classList.remove('hidden');
+    const cols = Object.keys(excelData[0]);
+    const colNameSel = document.getElementById('col-name');
+    const colDniSel = document.getElementById('col-dni');
+    colNameSel.innerHTML = '';
+    colDniSel.innerHTML = '';
+    cols.forEach(c => {
+      colNameSel.innerHTML += `<option value="${c}">${c}</option>`;
+      colDniSel.innerHTML += `<option value="${c}">${c}</option>`;
+    });
 
-    document.getElementById('step2-ind').classList.remove('active');
-    document.getElementById('step2-ind').classList.add('done');
-    document.getElementById('step3-ind').classList.add('active');
-    
-    document.getElementById('options-card').classList.remove('hidden');
+    const nameLike = cols.find(c => /nombre|alumno|estudiante|name|apellido/i.test(c));
+    const dniLike = cols.find(c => /dni|documento|cedula|ci|rut|nif|carnet|código|codigo/i.test(c));
+    if (nameLike) colNameSel.value = nameLike;
+    if (dniLike) colDniSel.value = dniLike;
+
+    colNameSel.onchange = updatePreview;
+    colDniSel.onchange = updatePreview;
+
+    document.getElementById('excel-columns').classList.remove('hidden');
+    document.getElementById('step1-ind').classList.remove('active');
+    document.getElementById('step1-ind').classList.add('done');
+    document.getElementById('step2-ind').classList.add('active');
     updatePreview();
     checkReady();
-  });
+  }
+  document.getElementById('input-excel').addEventListener('change', handleExcelUpload);
 
-  // Extract text from PDF using pdf.js
-  async function extractTextFromPDF(arrayBuffer) {
-    try {
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      
-      // Read first 3 pages max (DNI should be there)
-      const maxPages = Math.min(pdf.numPages, 3);
-      
-      for (let i = 1; i <= maxPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map(item => item.str).join(' ');
-        fullText += pageText + ' ';
+  // ============================================
+  // PDF HELPERS
+  // ============================================
+  function isPdfFile(name) { return name.toLowerCase().trim().endsWith('.pdf'); }
+
+  function isHiddenOrSystemFile(name) {
+    const parts = name.split('/');
+    return parts.some(p => p.startsWith('.') || p.startsWith('__MACOSX') || p === 'Thumbs.db' || p === '.DS_Store');
+  }
+
+  function getFileName(fullPath) {
+    const parts = fullPath.split('/');
+    return parts[parts.length - 1] || fullPath;
+  }
+
+  // ============================================
+  // PDF / ZIP UPLOAD
+  // ============================================
+  async function handlePdfsUpload(e) {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    // Clear previous PDF state
+    pdfFiles = [];
+
+    const loadingEl = document.getElementById('pdfs-loading');
+    const infoEl = document.getElementById('pdfs-info');
+    const debugEl = document.getElementById('pdfs-debug');
+
+    const zipFile = files.find(f => f.name.toLowerCase().endsWith('.zip'));
+
+    if (zipFile) {
+      loadingEl.classList.remove('hidden');
+      infoEl.classList.add('hidden');
+      debugEl.classList.add('hidden');
+
+      try {
+        const zipData = await zipFile.arrayBuffer();
+        const zip = await JSZip.loadAsync(zipData);
+
+        const allEntries = Object.keys(zip.files);
+        let debugInfo = `📦 ZIP: "${zipFile.name}" (${(zipFile.size / 1024).toFixed(0)} KB)\n`;
+        debugInfo += `📂 Total entradas: ${allEntries.length}\n──────────────────────────\n`;
+        let skippedCount = 0, dirCount = 0;
+
+        for (const [fullPath, entry] of Object.entries(zip.files)) {
+          if (entry.dir) { dirCount++; continue; }
+          if (isHiddenOrSystemFile(fullPath)) { skippedCount++; debugInfo += `⊘ Sistema: ${fullPath}\n`; continue; }
+
+          if (isPdfFile(fullPath)) {
+            try {
+              const data = await entry.async('arraybuffer');
+              const fileName = getFileName(fullPath);
+              if (data.byteLength > 0) {
+                pdfFiles.push({ name: fileName, data, originalPath: fullPath });
+                debugInfo += `✓ PDF: ${fullPath} (${(data.byteLength / 1024).toFixed(0)} KB)\n`;
+              } else {
+                debugInfo += `⚠ Vacío: ${fullPath}\n`;
+              }
+            } catch (ex) {
+              debugInfo += `✗ Error: ${fullPath} — ${ex.message}\n`;
+            }
+          } else {
+            skippedCount++;
+            debugInfo += `⊘ No PDF: ${fullPath}\n`;
+          }
+        }
+
+        debugInfo += `──────────────────────────\n📊 ${pdfFiles.length} PDFs | ${dirCount} carpetas | ${skippedCount} omitidos`;
+        loadingEl.classList.add('hidden');
+
+        if (pdfFiles.length > 0) {
+          infoEl.innerHTML = `<div class="file-info">✅ ${zipFile.name} — ${pdfFiles.length} PDFs extraídos</div>`;
+        } else {
+          infoEl.innerHTML = `<div class="file-info info-err">❌ No se encontraron archivos .pdf dentro del ZIP</div>
+            <div class="file-info info-warn" style="margin-top:0.4rem;">⚠ Revisa el panel de abajo para ver qué contiene el ZIP</div>`;
+        }
+        infoEl.classList.remove('hidden');
+        debugEl.innerHTML = `<div class="debug-box">${debugInfo.replace(/\n/g, '<br>')}</div>`;
+        debugEl.classList.remove('hidden');
+      } catch (err) {
+        loadingEl.classList.add('hidden');
+        infoEl.innerHTML = `<div class="file-info info-err">❌ Error al leer ZIP: ${err.message}</div>`;
+        infoEl.classList.remove('hidden');
+        debugEl.innerHTML = `<div class="debug-box">Error: ${err.stack || err.message}</div>`;
+        debugEl.classList.remove('hidden');
+        return;
       }
-      
-      return fullText;
-    } catch (err) {
-      console.warn('PDF text extraction failed:', err);
-      return '';
+    } else {
+      loadingEl.classList.remove('hidden');
+      infoEl.classList.add('hidden');
+      debugEl.classList.add('hidden');
+
+      for (const file of files) {
+        if (isPdfFile(file.name)) {
+          const data = await file.arrayBuffer();
+          pdfFiles.push({ name: file.name, data });
+        }
+      }
+
+      loadingEl.classList.add('hidden');
+      infoEl.innerHTML = pdfFiles.length > 0
+        ? `<div class="file-info">✅ ${pdfFiles.length} archivos PDF cargados</div>`
+        : `<div class="file-info info-err">❌ No se seleccionaron archivos PDF válidos</div>`;
+      infoEl.classList.remove('hidden');
     }
-  }
 
-  function findStudentByDni(dni) {
-    if (!dni) return null;
-    const dniCol = document.getElementById('col-dni').value;
-    return excelData.find(row => String(row[dniCol] || '').trim() === dni);
-  }
+    if (pdfFiles.length > 0) {
+      document.getElementById('step2-ind').classList.remove('active');
+      document.getElementById('step2-ind').classList.add('done');
+      document.getElementById('step3-ind').classList.add('active');
+    }
 
-  function findPdfForStudent(studentDni) {
-    return pdfFiles.find(pdf => pdf.foundDni === studentDni);
+    updatePreview();
+    checkReady();
   }
+  document.getElementById('input-pdfs').addEventListener('change', handlePdfsUpload);
 
+  // ============================================
+  // PREVIEW
+  // ============================================
   function updatePreview() {
     if (!excelData.length) return;
-    
     const nameCol = document.getElementById('col-name').value;
     const dniCol = document.getElementById('col-dni').value;
     const container = document.getElementById('preview-container');
     const table = document.getElementById('preview-table');
-    
-    // Re-scan PDFs for DNIs with current column selection
-    if (pdfFiles.length > 0) {
-      for (const pdf of pdfFiles) {
-        pdf.foundDni = null;
-        for (const row of excelData) {
-          const dni = String(row[dniCol] || '').trim();
-          if (dni && pdf.textContent.includes(dni)) {
-            pdf.foundDni = dni;
-            break;
-          }
-        }
-      }
-    }
-    
-    const preview = excelData.slice(0, 8);
-    let html = '<thead><tr><th>Alumno</th><th>DNI</th><th>PDF encontrado</th></tr></thead><tbody>';
-    
+
+    const preview = excelData.slice(0, 6);
+    let html = '<thead><tr><th>Nombre (Excel)</th><th>DNI</th><th>PDF encontrado</th></tr></thead><tbody>';
+
     preview.forEach(row => {
       const name = String(row[nameCol] || '').trim();
       const dni = String(row[dniCol] || '').trim();
-      const matchedPdf = findPdfForStudent(dni);
-      
+      const matched = pdfFiles.length > 0 ? findPdfMatch(name, dni) : null;
       let tag;
       if (pdfFiles.length === 0) {
-        tag = '<span class="tag tag-pending">⏳ Sube los PDFs</span>';
-      } else if (matchedPdf) {
-        const shortName = matchedPdf.name.length > 30 ? matchedPdf.name.substring(0, 27) + '...' : matchedPdf.name;
-        tag = `<span class="tag tag-ok">✓ ${shortName}</span>`;
+        tag = '<span class="tag" style="color:var(--text2)">— sube los PDFs</span>';
+      } else if (matched) {
+        const sn = matched.name.length > 35 ? matched.name.substring(0, 32) + '...' : matched.name;
+        tag = `<span class="tag tag-ok">✓ ${sn}</span>`;
       } else {
-        tag = `<span class="tag tag-no">✗ DNI no encontrado en PDFs</span>`;
+        tag = `<span class="tag tag-no">✗ no encontrado</span>`;
       }
-      
       html += `<tr><td>${name}</td><td>${dni}</td><td>${tag}</td></tr>`;
     });
-    
-    if (excelData.length > 8) {
-      html += `<tr><td colspan="3" style="color:var(--text2);text-align:center;font-family:'DM Sans',sans-serif;font-size:0.8rem;">... y ${excelData.length - 8} alumnos más</td></tr>`;
+
+    if (excelData.length > 6) {
+      html += `<tr><td colspan="3" style="color:var(--text2);text-align:center;font-family:'DM Sans',sans-serif;">... y ${excelData.length - 6} alumnos más</td></tr>`;
     }
-    
     html += '</tbody>';
     table.innerHTML = html;
     container.classList.remove('hidden');
   }
 
   function checkReady() {
-    btnProcess.disabled = !(excelData.length > 0 && pdfFiles.length > 0);
+    document.getElementById('btn-process').disabled = !(excelData.length > 0 && pdfFiles.length > 0);
   }
 
-  // === PROCESS ===
-  btnProcess.addEventListener('click', processAll);
-
+  // ============================================
+  // PROCESS
+  // ============================================
   async function processAll() {
     const nameCol = document.getElementById('col-name').value;
     const dniCol = document.getElementById('col-dni').value;
@@ -666,6 +776,7 @@
     const progressText = document.getElementById('progress-text');
     const summary = document.getElementById('summary');
     const btnDl = document.getElementById('btn-download');
+    const btnProc = document.getElementById('btn-process');
 
     results.classList.remove('hidden');
     summary.classList.add('hidden');
@@ -673,18 +784,15 @@
     log.innerHTML = '';
     progressFill.style.width = '0%';
     progressText.textContent = '';
-    btnProcess.disabled = true;
-    btnProcess.innerHTML = '<span class="loading-spinner"></span> Procesando...';
+    btnProc.disabled = true;
+    btnProc.innerHTML = '<span class="loading-spinner"></span> Procesando...';
 
     resultZip = new JSZip();
-    let okCount = 0;
-    let errCount = 0;
+    let okCount = 0, errCount = 0;
     const total = excelData.length;
     const usedPdfs = new Set();
 
-    logMsg('info', `━━━ Iniciando proceso para ${total} alumnos ━━━`);
-    logMsg('info', `PDFs cargados: ${pdfFiles.length}`);
-    logMsg('info', `Modo de renombrado: ${renameMode}`);
+    logMsg('info', `Iniciando: ${total} alumnos, ${pdfFiles.length} PDFs, modo: ${matchMode}`);
     logMsg('info', '');
 
     for (let i = 0; i < total; i++) {
@@ -693,56 +801,33 @@
       const dni = String(row[dniCol] || '').trim();
 
       if (!name || !dni) {
-        logMsg('warn', `⚠ Fila ${i + 1}: nombre o DNI vacío, saltando`);
+        logMsg('warn', `⚠ Fila ${i + 1}: nombre o DNI vacío`);
         errCount++;
         updateProgress(i + 1, total, progressFill, progressText);
         continue;
       }
 
-      // Find PDF by DNI in content
-      const matchedPdf = findPdfForStudent(dni);
+      const matchedPdf = findPdfMatch(name, dni);
 
       if (!matchedPdf) {
-        logMsg('err', `✗ ${name} (DNI: ${dni}) — No se encontró PDF con este DNI`);
+        logMsg('err', `✗ ${name} (DNI: ${dni}) — PDF no encontrado`);
         errCount++;
       } else {
         try {
           const pdfDoc = await PDFLib.PDFDocument.load(matchedPdf.data, { ignoreEncryption: true });
-          
           const encrypted = await PDFLib.PDFDocument.create();
           const pages = await encrypted.copyPages(pdfDoc, pdfDoc.getPageIndices());
           pages.forEach(p => encrypted.addPage(p));
-          
+
           const savedBytes = await encrypted.save({
             userPassword: dni,
             ownerPassword: dni,
-            permissions: {
-              printing: 'highQuality',
-              modifying: false,
-              copying: false,
-            }
+            permissions: { printing: 'highQuality', modifying: false, copying: false }
           });
 
-          // Generate new filename based on rename mode
-          const cleanName = name.replace(/[\\/:*?"<>|]/g, '_').trim();
-          let newFileName;
-          switch (renameMode) {
-            case 'nombre_dni':
-              newFileName = `${cleanName}_${dni}.pdf`;
-              break;
-            case 'dni_nombre':
-              newFileName = `${dni}_${cleanName}.pdf`;
-              break;
-            case 'solo_nombre':
-              newFileName = `${cleanName}.pdf`;
-              break;
-            default:
-              newFileName = matchedPdf.name;
-          }
-
-          resultZip.file(newFileName, savedBytes);
+          resultZip.file(matchedPdf.name, savedBytes);
           usedPdfs.add(matchedPdf.name);
-          logMsg('ok', `✓ ${name} → ${newFileName} (🔑 ${dni})`);
+          logMsg('ok', `✓ ${name} → ${matchedPdf.name} (🔑 ${dni})`);
           okCount++;
         } catch (err) {
           logMsg('err', `✗ ${name} — error: ${err.message}`);
@@ -754,22 +839,15 @@
       if (i % 3 === 0) await new Promise(r => setTimeout(r, 5));
     }
 
-    // Report unmatched PDFs
     const unmatchedPdfs = pdfFiles.filter(f => !usedPdfs.has(f.name));
     if (unmatchedPdfs.length > 0) {
       logMsg('info', '');
       logMsg('warn', `⚠ ${unmatchedPdfs.length} PDFs sin asignar:`);
-      unmatchedPdfs.slice(0, 10).forEach(f => {
-        const dniFound = f.foundDni ? `(contiene DNI: ${f.foundDni})` : '(sin DNI detectado)';
-        logMsg('warn', `   📄 ${f.name} ${dniFound}`);
-      });
-      if (unmatchedPdfs.length > 10) {
-        logMsg('warn', `   ... y ${unmatchedPdfs.length - 10} más`);
-      }
+      unmatchedPdfs.forEach(f => logMsg('warn', `   📄 ${f.name}`));
     }
 
     logMsg('info', '');
-    logMsg('info', `━━━ Completado: ${okCount} protegidos, ${errCount} sin emparejar ━━━`);
+    logMsg('info', `━━━ Completado: ${okCount} protegidos, ${errCount} sin coincidir ━━━`);
 
     document.getElementById('count-ok').textContent = okCount;
     document.getElementById('count-err').textContent = errCount;
@@ -778,18 +856,17 @@
 
     if (okCount > 0) btnDl.classList.remove('hidden');
 
-    btnProcess.disabled = false;
-    btnProcess.innerHTML = '🔐 Escanear PDFs y Proteger con Contraseña';
+    btnProc.disabled = false;
+    btnProc.innerHTML = '🔐 Proteger PDFs con contraseña';
     document.getElementById('step3-ind').classList.remove('active');
     document.getElementById('step3-ind').classList.add('done');
-
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function updateProgress(current, total, fill, text) {
     const pct = Math.round((current / total) * 100);
     fill.style.width = pct + '%';
-    text.textContent = `${current} de ${total} alumnos procesados (${pct}%)`;
+    text.textContent = `${current} de ${total} (${pct}%)`;
   }
 
   function logMsg(type, msg) {
@@ -802,15 +879,13 @@
     const btn = document.getElementById('btn-download');
     btn.innerHTML = '<span class="loading-spinner"></span> Generando ZIP...';
     btn.disabled = true;
-    
     try {
       const blob = await resultZip.generateAsync({ type: 'blob' });
-      saveAs(blob, 'PDFs_protegidos_renombrados.zip');
+      saveAs(blob, 'PDFs_protegidos.zip');
     } catch (err) {
-      alert('Error al generar el ZIP: ' + err.message);
+      alert('Error al generar ZIP: ' + err.message);
     }
-    
-    btn.innerHTML = '⬇️ Descargar PDFs protegidos (.zip)';
+    btn.innerHTML = '⬇️ Descargar todos los PDFs protegidos (.zip)';
     btn.disabled = false;
   }
 </script>
